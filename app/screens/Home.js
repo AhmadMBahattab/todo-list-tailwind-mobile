@@ -23,12 +23,14 @@ import DatePicker from "react-native-modern-datepicker";
 const windowWidth = Dimensions.get("window").width;
 const windowHeight = Dimensions.get("window").height;
 
+const api = "http://192.168.100.200:5500";
 const Home = () => {
   const [modalOn, setModalOn] = useState(false);
   const [calenderOpen, setcalenderOpen] = useState(false);
   const [taskName, settaskName] = useState("");
   const [taskDetails, settaskDetails] = useState("");
   const [taskDate, settaskDate] = useState("");
+  const [colors, setcolors] = useState(["#281a43", "#004acf"]);
   const [toDoArray, settoDoArray] = useState([
     {
       _id: 1,
@@ -53,20 +55,20 @@ const Home = () => {
     // },
   ]);
 
-  //   useEffect(() => {
-  //     async function getData() {
-  //       const { data: tasks } = await axios.get("http://localhost:5500");
-  //       console.log(data);
-  //       settoDoArray(tasks);
-  //     }
-  //     getData().catch((err) => console.log("err is ", err));
-  //   }, []);
+  useEffect(() => {
+    async function getData() {
+      const { data: tasks } = await axios.get(api);
+      console.log(tasks);
+      settoDoArray(tasks);
+    }
+    getData().catch((err) => console.log("err is ", err));
+  }, []);
 
   const openModel = () => {
     setModalOn(!modalOn);
   };
 
-  const addTask = (name, date, details) => {
+  const addTask = async (name, date, details) => {
     let tasksArary = [...toDoArray];
     if (name === "" || name == null) {
       return alert("Must add task name");
@@ -80,7 +82,7 @@ const Home = () => {
 
     tasksArary.push(newTask);
 
-    // const find = await axios.post("http://localhost:5500", newTask);
+    const find = await axios.post(api, newTask);
 
     settoDoArray(tasksArary);
     setModalOn(false);
@@ -97,7 +99,7 @@ const Home = () => {
       return todo._id !== task._id;
     });
     settoDoArray(tasksArr);
-    // const find = await axios.put("http://localhost:5500", task);
+    const find = await axios.put(api, task);
     // toast.success("Task deleted ");
   };
 
@@ -114,7 +116,13 @@ const Home = () => {
           <ScrollView>
             {toDoArray.map((item, index) => (
               <>
-                <View key={index} style={styles.singleTaskContainer}>
+                <View
+                  key={index}
+                  style={[
+                    styles.singleTaskContainer,
+                    { backgroundColor: index % 2 == 0 ? colors[0] : colors[1] },
+                  ]}
+                >
                   <View>
                     <Text
                       style={{
@@ -136,7 +144,12 @@ const Home = () => {
                     </TouchableOpacity>
                   </View>
                 </View>
-                <View style={styles.singleTaskDetailsContainer}>
+                <View
+                  style={[
+                    styles.singleTaskDetailsContainer,
+                    { backgroundColor: index % 2 == 0 ? colors[0] : colors[1] },
+                  ]}
+                >
                   <View>
                     <Text
                       style={{
@@ -169,7 +182,14 @@ const Home = () => {
               alignItems: "center",
             }}
           >
-            <Text style={{ fontSize: 25, color: "white" }}>
+            <Text
+              style={{
+                fontSize: 25,
+                color: "white",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               No tasks at all !! add some
             </Text>
             <TouchableOpacity onPress={openModel}>
@@ -209,6 +229,7 @@ const Home = () => {
             icon={{ name: "add", color: "white" }}
             size="large"
             onPress={openModel}
+            color="#1a3563"
           />
         </View>
       ) : null}
@@ -217,7 +238,7 @@ const Home = () => {
         isVisible={modalOn}
         onBackdropPress={openModel}
         overlayStyle={{
-          backgroundColor: "white",
+          backgroundColor: "#281a43",
           width: windowWidth,
           paddingTop: 20,
         }}
@@ -230,7 +251,7 @@ const Home = () => {
             <View></View>
             <TouchableOpacity onPress={openModel}>
               <View style={{ padding: 10 }}>
-                <MaterialIcons name="cancel" size={28} color="black" />
+                <MaterialIcons name="cancel" size={28} color="white" />
               </View>
             </TouchableOpacity>
           </View>
@@ -304,7 +325,7 @@ const Home = () => {
             </>
           ) : null}
           {calenderOpen && (
-            <View>
+            <View style={{ marginBottom: 15 }}>
               <DatePicker mode="date" onDateChange={(e) => settaskDate(e)} />
             </View>
           )}
@@ -382,8 +403,6 @@ const styles = StyleSheet.create({
   },
   singleTaskContainer: {
     padding: 10,
-    backgroundColor: "#2D1C5E",
-
     marginTop: 15,
     justifyContent: "space-between",
     flexDirection: "row",
@@ -392,7 +411,6 @@ const styles = StyleSheet.create({
   },
   singleTaskDetailsContainer: {
     padding: 10,
-    backgroundColor: "#2D1C5E",
     borderBottomLeftRadius: 15,
     borderBottomRightRadius: 15,
     borderTopColor: "lightgray",
